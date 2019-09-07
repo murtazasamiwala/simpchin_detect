@@ -1,2 +1,3 @@
-__pycache__/ export-ignore
-build/simpchin_detect/ export-ignore
+/__pycache__/ export-ignore
+/build/simpchin_detect/ export-ignore
+*.toc export-ignore
