@@ -12,28 +12,45 @@ simp=set(list(cedict.simplified))
 both=set([i for i in trad if i in simp])
 all_chinese=cedict.all
 #%%
-# results=[]
+def report(msg,filename,result):
+    msg_head='*'*20+'\n'+'Result for {}:'.format(filename)+'\n'
+    result_msg='RESULT :: '+result+'\n'
+    msg_body=msg+'\n'+'-'*20+'\n'
+    return msg_head+result_msg+msg_body
+#%%
+msg_list=[]
+result=open('script_result.txt','a',encoding='utf8')
 for i in os.listdir(base_path):
     extension=i.split('.')[-1]
-    if extension=='docx':
+    if extension==i:
+        pass
+    elif extension in ['py','git','spec','exe','txt']:
+        pass
+    elif extension=='docx':
         text_doc=docx2txt.process(i)
         chinese_text=set(re.sub('[^%s]' % all_chinese,'',text_doc))
         if len(chinese_text)==0:
-            print('{} does not contain Chinese text'.format(i))
+            msg='{} does not contain Chinese text'.format(i)
+            msg_list.append(report(msg,i,'IGNORE FILE'))
         elif chinese_text.issubset(trad):
-            print('{} has only traditional chars'.format(i))
+            msg='{} is written in Traditional Chinese'.format(i)
+            msg_list.append(report(msg,i,'PASSED'))
         elif chinese_text.issubset(simp):
-            print('ERROR {} is written in Simplified Chinese'.format(i))
+            msg='{} is written in Simplified Chinese'.format(i)
+            msg_list.append(report(msg,i,'ERROR'))
         else:
-            results=open('output_'+i.split('.')[0]+'.txt','a',encoding='utf8')
+            output=open('output_'+i.split('.')[0]+'.txt','a',encoding='utf8')
             for char in chinese_text:
                 if char in simp:
-                    results.write(char+'\n')
-            results.close()
-            #         results.append(char)
-            # output=results_ser.value_counts()
-            # output=pd.DataFrame({'char':output.index,'count':output.values})
-            # output.to_csv(base_path+'\\output_'+i.split('.')[0]+'.txt',index=False)
-            print('{} has both simplified and traditional chars'.format(i))
+                    output.write(char+'\n')
+            output.close()
+            output_name='output_'+i.split('.')[0]+'.txt'
+            msg_strt='{} has both Simplified and Traditional characters'.format(i)+'\n'
+            msg_end=' has been generated. It is a list of Simplified Characters to be fixed'
+            full_msg=msg_strt+output_name+msg_end
+            msg_list.append(report(full_msg,i,'ERROR'))
     else:
-        print('{} is not a docx file'.format(i))
+        msg='{} is not a docx file'.format(i)
+        msg_list.append(report(msg,i,'IGNORE FILE'))
+for i in msg_list:
+    result.write(i)

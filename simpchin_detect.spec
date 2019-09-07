@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['simpchin_detect.py'],
-             pathex=['C:\\Users\\Murtaza\\Python work\\simpchin_detect'],
+             pathex=['C:\\Users\\Murtaza\\Python work\\simpchin_detect\\simpchin_detect'],
              binaries=[],
              datas=[],
              hiddenimports=[],
