@@ -1,3 +1,4 @@
 /__pycache__/ export-ignore
 /build/simpchin_detect/ export-ignore
 *.toc export-ignore
+xref-simpchin_detect.html export-ignore
