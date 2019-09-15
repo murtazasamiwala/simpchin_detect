@@ -54,3 +54,4 @@ for i in os.listdir(base_path):
         msg_list.append(report(msg,i,'IGNORE FILE'))
 for i in msg_list:
     result.write(i)
+result.close()
