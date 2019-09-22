@@ -4,9 +4,10 @@ import re
 import os
 from os.path import abspath, join
 import textract
-from textract.parsers import docx_parser, doc_parser, pptx_parser, xls_parser
-from textract.parsers import xlsx_parser, csv_parser, txt_parser, rtf_parser
+from textract.parsers import pptx_parser, xls_parser, xlsx_parser
+from textract.parsers import csv_parser, txt_parser, rtf_parser
 from zipfile import ZipFile
+import win32com.client as win32
 import shutil
 base_path = os.path.dirname(abspath('__file__'))
 trad = set(list(cedict.traditional))
@@ -16,9 +17,17 @@ all_chinese = cedict.all
 avail_exts = ['docx', 'doc', 'ppt', 'pptx', 'xls', 'xlsx', 'csv', 'txt', 'rtf']
 
 
-def extract_chinese(fname):
+def extract_chinese(fname, path=base_path):
     """Extract Chinese text from given document."""
-    txt = textract.process(fname, encoding='utf8').decode()
+    if (fname.endswith('.doc')) | (fname.endswith('.docx')):
+        word = win32.Dispatch('Word.Application')
+        doc_file = path + '\\' + fname
+        doc = word.Documents.Open(doc_file)
+        txt = doc.Content.Text
+        doc.Close(False)
+        word.Quit()
+    else:
+        txt = textract.process(fname, encoding='utf8').decode()
     chinese_text = set(re.sub('[^%s]' % all_chinese, '', txt))
     return chinese_text
 
@@ -57,7 +66,7 @@ def zip_extract(zname, path=base_path):
                         temp_msg_list.append(msg)
                 shutil.rmtree(i)
     zf.close()
-    if (market_name=='Taiwan') & ('ERROR' in msg):
+    if (market_name == 'Taiwan') & ('ERROR' in msg):
         os.remove(zname)
     return temp_msg_list
 
@@ -147,4 +156,5 @@ def directory_check(path=base_path):
     result.close()
 
 
-directory_check()
+if __name__ == '__main__':
+    directory_check()
