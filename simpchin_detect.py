@@ -3,9 +3,9 @@ from zhon import cedict
 import re
 import os
 from os.path import abspath, join
-import textract
-from textract.parsers import pptx_parser, xls_parser, xlsx_parser
-from textract.parsers import csv_parser, txt_parser, rtf_parser
+import xlrd
+import pptx
+import csv
 from zipfile import ZipFile
 import win32com.client as win32
 import shutil
@@ -14,20 +14,54 @@ trad = set(list(cedict.traditional))
 simp = set(list(cedict.simplified))
 both = set([i for i in trad if i in simp])
 all_chinese = cedict.all
-avail_exts = ['docx', 'doc', 'ppt', 'pptx', 'xls', 'xlsx', 'csv', 'txt', 'rtf']
+avail_exts = ['docx', 'doc', 'pptx', 'xls', 'xlsx', 'csv', 'txt', 'rtf']
+passed_exts = ['py', 'git', 'spec', 'exe', 'md', 'gitattributes', 'gitignore']
 
 
 def extract_chinese(fname, path=base_path):
     """Extract Chinese text from given document."""
-    if (fname.endswith('.doc')) | (fname.endswith('.docx')):
+    exten = fname.split('.')[-1]
+    if exten in ['doc', 'docx', 'rtf']:
         word = win32.Dispatch('Word.Application')
         doc_file = path + '\\' + fname
         doc = word.Documents.Open(doc_file)
         txt = doc.Content.Text
         doc.Close(False)
         word.Quit()
-    else:
-        txt = textract.process(fname, encoding='utf8').decode()
+    elif (fname.endswith('.xls')) | (fname.endswith('.xlsx')):
+        workbook = xlrd.open_workbook(fname)
+        sheets_name = workbook.sheet_names()
+        txt = '\n'
+        for names in sheets_name:
+            worksheet = workbook.sheet_by_name(names)
+            num_rows = worksheet.nrows
+            num_cells = worksheet.ncols
+            for curr_row in range(num_rows):
+                new_output = []
+                for index_col in range(num_cells):
+                    value = worksheet.cell_value(curr_row, index_col)
+                    if value:
+                        new_output.append(value)
+                if new_output:
+                    txt += ' '.join(new_output) + '\n'
+    elif fname.endswith('.pptx'):
+        presentation = pptx.Presentation(fname)
+        text_runs = []
+        for slide in presentation.slides:
+            for shape in slide.shapes:
+                if not shape.has_text_frame:
+                    continue
+                for paragraph in shape.text_frame.paragraphs:
+                    for run in paragraph.runs:
+                        text_runs.append(run.text)
+        txt = '\n\n'.join(text_runs)
+    elif fname.endswith('.txt'):
+        text_doc = open(fname, 'r', encoding='utf8')
+        txt = text_doc.read()
+    elif fname.endswith('.csv'):
+        csv_doc = open(fname, 'r', encoding='utf8')
+        csv_reader = csv.reader(csv_doc, delimiter=',')
+        txt = '\n'.join(['\t'.join(row) for row in csv_reader])
     chinese_text = set(re.sub('[^%s]' % all_chinese, '', txt))
     return chinese_text
 
@@ -136,8 +170,13 @@ def directory_check(path=base_path):
         extension = i.split('.')[-1]
         if extension == i:
             pass
-        elif extension in ['py', 'git', 'spec', 'exe', 'md', 'gitattributes']:
+        elif extension in passed_exts:
             pass
+        elif extension == 'ppt':
+            msg_1 = 'ppt format not supported. If file is in zip, extract it.'
+            msg_2 = '\nThen convert {} to pptx and run script.'.format(i)
+            msg = msg_1 + msg_2
+            msg_list.append(report(msg, i, 'NOT SUPPORTED'))
         elif extension in avail_exts:
             chinese_text = extract_chinese(i)
             msg = chinese_text_check(chinese_text, i, market)
