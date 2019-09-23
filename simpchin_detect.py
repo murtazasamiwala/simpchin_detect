@@ -27,7 +27,6 @@ def extract_chinese(fname, path=base_path):
         doc = word.Documents.Open(doc_file)
         txt = doc.Content.Text
         doc.Close(False)
-        word.Quit()
     elif (fname.endswith('.xls')) | (fname.endswith('.xlsx')):
         workbook = xlrd.open_workbook(fname)
         sheets_name = workbook.sheet_names()
