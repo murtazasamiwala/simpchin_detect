@@ -95,7 +95,7 @@ def zip_extract(zname, path=base_path):
                 for j in os.listdir(doc_path):
                     ext2 = j.split('.')[-1]
                     if ext2 in avail_exts:
-                        chinese_text = extract_chinese(doc_path + '\\' + j)
+                        chinese_text = extract_chinese(j, doc_path)
                         msg = chinese_text_check(chinese_text, j, market_name)
                         temp_msg_list.append(msg)
                 shutil.rmtree(i)
