@@ -135,21 +135,46 @@ def chinese_text_check(ch_text, fname, market):
             comb_msg = msg_1 + msg_2 + msg_3
             fin_msg = report(comb_msg, fname, 'SIMPLIFIED CHINESE')
     else:
-        output_name = 'output_' + fname.split('.')[0] + '.txt'
-        output = open(output_name, 'a', encoding='utf8')
-        for char in ch_text:
-            if char in simp:
-                output.write(char + '\n')
-        output.close()
-        msg_1 = '{} has both Simplified and Traditional '.format(fname)
-        msg_2 = 'characters\nCheck service name and fix characters'
-        msg_3 = ' of other language.\nFile has been deleted!!\n'
-        msg_strt = msg_1 + msg_2 + msg_3
-        msg_end_1 = ' has been generated. It is a list of Simplified '
-        msg_end_2 = 'Characters to be fixed.'
-        msg_end = msg_end_1 + msg_end_2
-        full_msg = msg_strt + output_name + msg_end
-        fin_msg = report(full_msg, fname, 'ERROR')
+        simp_chars = [i for i in ch_text if i in simp]
+        trad_chars = [i for i in ch_text if i in trad]
+        if market == 'Taiwan':
+            output_name = 'output_' + fname.split('.')[0] + '.txt'
+            output = open(output_name, 'a', encoding='utf8')
+            for simp_char in simp_chars:
+                output.write(simp_char + '\n')
+            output.close()
+            msg_1 = '{} has Simplified characters but market is'.format(fname)
+            msg_2 = ' Taiwan.\nThis is a serious error!! DO NOT DELIVER!!\n'
+            msg_3 = 'File has been deleted!!\n'
+            msg_strt = msg_1 + msg_2 + msg_3
+            msg_end_1 = ' has been generated. It is a list of Simplified '
+            msg_end_2 = 'characters to be fixed.'
+            msg_end = msg_end_1 + msg_end_2
+            full_msg = msg_strt + output_name + msg_end
+            fin_msg = report(full_msg, fname, 'ERROR')
+        else:
+            oname_simp = 'SIMP_output_' + fname.split('.')[0] + '.txt'
+            output_simp = open(oname_simp, 'a', encoding='utf8')
+            for simp_char in simp_chars:
+                output_simp.write(simp_char + '\n')
+            output_simp.close()
+            oname_trad = 'TRAD_output_' + fname.split('.')[0] + '.txt'
+            output_trad = open(oname_trad, 'a', encoding='utf8')
+            for trad_char in trad_chars:
+                output_trad.write(trad_char + '\n')
+            output_trad.close()
+            msg_1 = '{} has both Simplified and Traditional '.format(fname)
+            msg_2 = 'characters\nThis is likely to be an error.\n'
+            msg_3 = 'File has been deleted!!\n'
+            msg_strt = msg_1 + msg_2 + msg_3
+            msg_end_1 = '{} and {} have been'.format(oname_simp, oname_trad)
+            msg_end_2 = ' generated.\nThey contain separate lists of '
+            msg_end_3 = 'Simplified and Traditional characters in the file.\n'
+            msg_end_4 = 'Check service name and fix characters of the other'
+            msg_end_5 = ' language using the appropriate list.'
+            msg_end = msg_end_1 + msg_end_2 + msg_end_3 + msg_end_4 + msg_end_5
+            full_msg = msg_strt + msg_end
+            fin_msg = report(full_msg, fname, 'ERROR')
     return fin_msg
 
 
