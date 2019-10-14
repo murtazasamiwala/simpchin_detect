@@ -135,8 +135,8 @@ def chinese_text_check(ch_text, fname, market):
             comb_msg = msg_1 + msg_2 + msg_3
             fin_msg = report(comb_msg, fname, 'SIMPLIFIED CHINESE')
     else:
-        simp_chars = [i for i in ch_text if i in simp]
-        trad_chars = [i for i in ch_text if i in trad]
+        simp_chars = [i for i in ch_text if i in simp and i not in trad]
+        trad_chars = [i for i in ch_text if i in trad and i not in simp]
         if market == 'Taiwan':
             output_name = 'output_' + fname.split('.')[0] + '.txt'
             output = open(output_name, 'a', encoding='utf8')
